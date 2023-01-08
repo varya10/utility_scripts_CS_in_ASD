@@ -15,14 +15,10 @@ import matplotlib.transforms as transforms
 from matplotlib.ticker import PercentFormatter
 
 
-#print(np.std([64, 28, 26, 63, 23, 22]))
-#print(np.std([49, 33, 28, 41, 24, 24, 22, 21, 33, 23, 26, 23]))
-
 def plot_formants(input_file):
     id_f1 = []
     id_f2 = []
     id_f3 = []
-    id_f0 = []
     f1 = {}
     f2 = {}
     f3 = {}
@@ -32,16 +28,14 @@ def plot_formants(input_file):
     with open(input_file, 'r') as f:
         for line in f:
             line = line.split('\t')
-            id_f0.append((line[0], line[2]))
             id_f1.append((line[0], line[3]))
             id_f2.append((line[0], line[4]))
             id_f3.append((line[0], line[5]))
-    id_f0 = id_f0[1:]
     id_f1 = id_f1[1:]
     id_f2 = id_f2[1:]
     id_f3 = id_f3[1:]
     
-    for item in id_f0:
+    for item in id_f1:
         if item[0] not in f1:
             f1[item[0]] = []
         f1[item[0]].append(float(item[1]))
@@ -81,7 +75,7 @@ def plot_formants(input_file):
 
 # fig1 = plt.figure(figsize =(40, 10))
 AS1_NC = plot_formants('data_AS1_NC.Table')
-print(len(AS1_NC[0]), len(AS1_NC[1]))
+print("len Conv AS1: ", len(AS1_NC[1]))
 AS2_NC = plot_formants('data_AS2_NC.Table')
 AS3_NC = plot_formants('data_AS3_NC.Table')
 AS4_NC = plot_formants('data_AS4_NC.Table')
@@ -107,7 +101,7 @@ NC.insert(1, 'Noise', 'NC')
 #print(NC)
 
 AS1_SSN = plot_formants('data_AS1_SSN.Table')
-print(len(AS1_SSN[0]))
+print("len SSN AS1: ", len(AS1_SSN[0]))
 #print(np.mean(AS1_NC[1])) # it's a mean of F2! in no condition
 AS2_SSN = plot_formants('data_AS2_SSN.Table')
 AS3_SSN = plot_formants('data_AS3_SSN.Table')
@@ -134,7 +128,7 @@ SSN.insert(1, 'Noise', 'SSN')
 #print(SSN)
 
 AS1_babble = plot_formants('data_AS1_babble.Table')
-print(len(AS1_babble[0]))
+print("len babble AS1: ", len(AS1_babble[0]))
 AS2_babble = plot_formants('data_AS2_babble.Table')
 AS3_babble = plot_formants('data_AS3_babble.Table')
 AS4_babble = plot_formants('data_AS4_babble.Table')
@@ -235,6 +229,7 @@ babble_C = pd.concat([C1_babble_df, C2_babble_df, C3_babble_df, C4_babble_df, C5
 babble_C.insert(1, 'Noise', 'babble')
 
 formants_C = pd.concat([NC_C, SSN_C, babble_C], axis=0, ignore_index=True)
+print("DataFrame all Controls and all noise conditions")
 print(formants_C)
 #formants_C.to_csv('C_f0_means.csv', encoding='utf-8', index=False)
 
@@ -251,14 +246,15 @@ def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
     ell_radius_y = np.sqrt(1 - pearson)
     ellipse = Ellipse((0, 0), width=ell_radius_x * 2, height=ell_radius_y * 2,
                       facecolor=facecolor, **kwargs)
-    #print('x', ell_radius_x)
-    #print('y', ell_radius_y)
+
+    # Calculate Perimeter and area of each ellipse --> gets individual measures => not useful
     ax_x = ell_radius_x*2
     ax_y = ell_radius_y*2
     perimeter = math.pi * ( 3*(ax_x+ax_y) - math.sqrt( (3*ax_x + ax_y) * (ax_x + 3*ax_y) ) )
     area = ell_radius_x*ell_radius_y*math.pi
-    print('Area', area)
-    print('Perimeter', perimeter)
+    #print('Area', area)
+    #print('Perimeter', perimeter)
+
     # Calculating the standard deviation of x from
     # the squareroot of the variance and multiplying
     # with the given number of standard deviations.
@@ -278,69 +274,72 @@ def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
     return ax.add_patch(ellipse)
 
 
-# fig, ax_nstd = plt.subplots(figsize=(6, 6))
-# plt.scatter(C6_NC[1], C6_NC[0], marker='x', c='dodgerblue', label='no noise')
-# xlist = []
-# ylist = []
+fig, ax_nstd = plt.subplots(figsize=(6, 6))
+plt.scatter(C6_NC[1], C6_NC[0], marker='x', c='dodgerblue', label='no noise')
+xlist = []
+ylist = []
 
-# # x_ave = np.average(C6_NC[1])
-# # y_ave = np.average(C6_NC[0])
-# #plt.scatter(xlist, ylist)
-# # plt.scatter(x_ave, y_ave, c = 'red', marker = '*', s = 50)
-# ax_nstd.scatter(C6_NC[1], C6_NC[0], s=0.5)
-# confidence_ellipse(np.array(C6_NC[1]), np.array(C6_NC[0]), ax_nstd, n_std=3,
-#                    edgecolor='royalblue')#, linestyle='--')
+# x_ave = np.average(C6_NC[1])
+# y_ave = np.average(C6_NC[0])
+#plt.scatter(xlist, ylist)
+# plt.scatter(x_ave, y_ave, c = 'red', marker = '*', s = 50)
+ax_nstd.scatter(C6_NC[1], C6_NC[0], s=0.5)
+confidence_ellipse(np.array(C6_NC[1]), np.array(C6_NC[0]), ax_nstd, n_std=3,
+                   edgecolor='royalblue')#, linestyle='--')
 
-# plt.xlabel('F2')
-# plt.ylabel('F1')
+plt.xlabel('F2')
+plt.ylabel('F1')
 
-# plt.scatter(C6_SSN[1], C6_SSN[0], marker='p', c='pink', label='speech shaped noise')
-# alist = []
-# blist = []
+plt.scatter(C6_SSN[1], C6_SSN[0], marker='p', c='pink', label='speech shaped noise')
+alist = []
+blist = []
 
-# # a_ave = np.average(C6_SSN[1])
-# # b_ave = np.average(C6_SSN[0])
-# # plt.scatter(alist, blist)
-# # plt.scatter(a_ave, b_ave, c = 'green', marker = 'o', s = 50)
-# ax_nstd.scatter(C6_SSN[1], C6_SSN[0], s=0.5)
-# confidence_ellipse(np.array(C6_SSN[1]), np.array(C6_SSN[0]), ax_nstd, n_std=3,
-#                     edgecolor='palevioletred')#, linestyle='--')
-# plt.xlabel('F2')
-# plt.ylabel('F1')
+# a_ave = np.average(C6_SSN[1])
+# b_ave = np.average(C6_SSN[0])
+# plt.scatter(alist, blist)
+# plt.scatter(a_ave, b_ave, c = 'green', marker = 'o', s = 50)
+ax_nstd.scatter(C6_SSN[1], C6_SSN[0], s=0.5)
+confidence_ellipse(np.array(C6_SSN[1]), np.array(C6_SSN[0]), ax_nstd, n_std=3,
+                    edgecolor='palevioletred')#, linestyle='--')
+plt.xlabel('F2')
+plt.ylabel('F1')
 
-# plt.scatter(C6_babble[1], C6_babble[0], marker='^', c='violet', label='babble noise')
-# # dlist = []
-# # flist = []
-# # d_ave = np.average(C6_babble[1])
-# # f_ave = np.average(C6_babble[0])
-# # plt.scatter(dlist, flist)
-# # plt.scatter(d_ave, f_ave, c = 'green', marker = 's', s = 50)
-# ax_nstd.scatter(C6_babble[1], C6_babble[0], s=0.5)
-# confidence_ellipse(np.array(C6_babble[1]), np.array(C6_babble[0]), ax_nstd, n_std=3,
-#                     edgecolor='magenta')#, linestyle='--')
-# plt.xlabel('F2')
-# plt.ylabel('F1')
-# plt.legend(scatterpoints=1,
-#            loc='upper right',
-#            ncol=3,
-#            fontsize=8)
-# plt.title('Control 6')
-# plt.show()
+plt.scatter(C6_babble[1], C6_babble[0], marker='^', c='violet', label='babble noise')
+# dlist = []
+# flist = []
+# d_ave = np.average(C6_babble[1])
+# f_ave = np.average(C6_babble[0])
+# plt.scatter(dlist, flist)
+# plt.scatter(d_ave, f_ave, c = 'green', marker = 's', s = 50)
+ax_nstd.scatter(C6_babble[1], C6_babble[0], s=0.5)
+confidence_ellipse(np.array(C6_babble[1]), np.array(C6_babble[0]), ax_nstd, n_std=3,
+                    edgecolor='magenta')#, linestyle='--')
+plt.xlabel('F2')
+plt.ylabel('F1')
+plt.legend(scatterpoints=1,
+           loc='upper right',
+           ncol=3,
+           fontsize=8)
+plt.title('Control 6')
+plt.show()
 
+# prepare data for the table
+#Asperger f2
 nc = [np.mean(AS1_NC[1]), np.mean(AS2_NC[1]), np.mean(AS3_NC[1]), np.mean(AS4_NC[1]), np.mean(AS5_NC[1]), np.mean(AS6_NC[1])]
 nss = [np.mean(AS1_SSN[1]), np.mean(AS2_SSN[1]), np.mean(AS3_SSN[1]), np.mean(AS4_SSN[1]), np.mean(AS5_SSN[1]), np.mean(AS6_SSN[1])]
 bbl = [np.mean(AS1_babble[1]), np.mean(AS2_babble[1]), np.mean(AS3_babble[1]), np.mean(AS4_babble[1]), np.mean(AS5_babble[1]), np.mean(AS6_babble[1])]
 
+#Asperger f3
 nc_f3 = [np.mean(AS1_NC[2]), np.mean(AS2_NC[2]), np.mean(AS3_NC[2]), np.mean(AS4_NC[2]), np.mean(AS5_NC[2]), np.mean(AS6_NC[2])]
 nss_f3 = [np.mean(AS1_SSN[2]), np.mean(AS2_SSN[2]), np.mean(AS3_SSN[2]), np.mean(AS4_SSN[2]), np.mean(AS5_SSN[2]), np.mean(AS6_SSN[2])]
 bbl_f3 = [np.mean(AS1_babble[2]), np.mean(AS2_babble[2]), np.mean(AS3_babble[2]), np.mean(AS4_babble[2]), np.mean(AS5_babble[2]), np.mean(AS6_babble[2])]
 
-
+#Control f2
 nc_c = [np.mean(C1_NC[1]), np.mean(C2_NC[1]), np.mean(C3_NC[1]), np.mean(C4_NC[1]), np.mean(C5_NC[1]), np.mean(C6_NC[1])]
 nss_c = [np.mean(C1_SSN[1]), np.mean(C2_SSN[1]), np.mean(C3_SSN[1]), np.mean(C4_SSN[1]), np.mean(C5_SSN[1]), np.mean(C6_SSN[1])]
 bbl_c = [np.mean(C1_babble[1]), np.mean(C2_babble[1]), np.mean(C3_babble[1]), np.mean(C4_babble[1]), np.mean(C5_babble[1]), np.mean(C6_babble[1])]
 
-
+#Control f3
 nc_cf3 = [np.mean(C1_NC[2]), np.mean(C2_NC[2]), np.mean(C3_NC[2]), np.mean(C4_NC[2]), np.mean(C5_NC[2]), np.mean(C6_NC[2])]
 nss_cf3 = [np.mean(C1_SSN[2]), np.mean(C2_SSN[2]), np.mean(C3_SSN[2]), np.mean(C4_SSN[2]), np.mean(C5_SSN[2]), np.mean(C6_SSN[2])]
 bbl_cf3 = [np.mean(C1_babble[2]), np.mean(C2_babble[2]), np.mean(C3_babble[2]), np.mean(C4_babble[2]), np.mean(C5_babble[2]), np.mean(C6_babble[2])]
@@ -385,44 +384,46 @@ def get_percent_increase(nc, ssn, bbl):
 	
 	return round(percent_ssn, 2), round(percent_bbl, 2)
 
+#Calculate % change
+
 AS1_NC_mean = np.mean(AS1_NC[1])
 #print(AS1_NC_mean)
 AS1_SSN_mean = np.mean(AS1_SSN[1])
-print(AS1_SSN_mean)
+#print(AS1_SSN_mean)
 AS1_babble_mean = np.mean(AS1_babble[1])
 #print(AS1_babble_mean)
 
 AS2_NC_mean = np.mean(AS2_NC[1])
 #print(AS2_NC_mean)
 AS2_SSN_mean = np.mean(AS2_SSN[1])
-print(AS2_SSN_mean)
+#print(AS2_SSN_mean)
 AS2_babble_mean = np.mean(AS2_babble[1])
 
 AS3_NC_mean = np.mean(AS3_NC[1])
 #print(AS3_NC_mean)
 AS3_SSN_mean = np.mean(AS3_SSN[1])
-print(AS3_SSN_mean)
+#print(AS3_SSN_mean)
 AS3_babble_mean = np.mean(AS3_babble[1])
 
 AS4_NC_mean = np.mean(AS4_NC[1])
 #print(AS4_NC_mean)
 AS4_SSN_mean = np.mean(AS4_SSN[1])
-print(AS4_SSN_mean)
+#print(AS4_SSN_mean)
 AS4_babble_mean = np.mean(AS4_babble[1])
 
 AS5_NC_mean = np.mean(AS5_NC[1])
 #print(AS5_NC_mean)
 AS5_SSN_mean = np.mean(AS5_SSN[1])
-print(AS5_SSN_mean)
+#print(AS5_SSN_mean)
 AS5_babble_mean = np.mean(AS5_babble[1])
 
 AS6_NC_mean = np.mean(AS6_NC[1])
 #print(AS6_NC_mean)
 AS6_SSN_mean = np.mean(AS6_SSN[1])
-print(AS6_SSN_mean)
+#print(AS6_SSN_mean)
 AS6_babble_mean = np.mean(AS6_babble[1])
 
-
+print("% change f2 in AS group: ssn, babble")
 percent_AS1 = get_percent_increase(AS1_NC_mean, AS1_SSN_mean, AS1_babble_mean)
 print(percent_AS1)
 percent_AS2 = get_percent_increase(AS2_NC_mean, AS2_SSN_mean, AS2_babble_mean)
@@ -437,7 +438,7 @@ percent_AS6 = get_percent_increase(AS6_NC_mean, AS6_SSN_mean, AS6_babble_mean)
 print(percent_AS6)
 ssn_m = [percent_AS1[0], percent_AS2[0], percent_AS3[0], percent_AS4[0], percent_AS5[0], percent_AS6[0]]
 bbl_m = [percent_AS1[1], percent_AS2[1], percent_AS3[1], percent_AS4[1], percent_AS5[1], percent_AS6[1]]
-print(np.mean(bbl_m))
+#print(np.mean(bbl_m))
 
 
 C1_NC_mean = np.mean(C1_NC[2])
@@ -495,6 +496,8 @@ calculate_perimeter(2,3)
 # bins_f3 = get_bins(AS1_NC[2])
  
 
+
+# PLOT FPRMANTS GENERAL --> MOVED TO JUPYTER NOTEBOOK
 
 # plt.hist(AS1_NC[0], edgecolor='black', density=False, weights=np.ones(len(AS1_NC[0])) / len(AS1_NC[0]), bins=bins_f1)
 # plt.hist(AS1_NC[1], edgecolor='black',density=False, weights=np.ones(len(AS1_NC[1])) / len(AS1_NC[1]), bins=bins_f2)
